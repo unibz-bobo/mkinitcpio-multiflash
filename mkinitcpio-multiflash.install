@@ -1,0 +1,207 @@
+#!/bin/bash
+
+_MKINITCPIO_CFG='/etc/mkinitcpio.conf'
+
+_CMDLINE_CFG='/boot/cmdline.txt'
+_CMD_CFG='multiflash'
+_IP_CMD_CFG='ip=:::::eth0:dhcp'
+
+_CONFIG_CFG='/boot/config.txt'
+_INITRAMFS='initramfs.img'
+_INITRAMFS_CFG="initramfs $_INITRAMFS followkernel"
+_INITRAMFS_PATH="/boot/$_INITRAMFS"
+
+#=====================================================================
+# Checks for a hook name in a given configuration file.
+# Arguments: hook name, configuration file
+# Example: _has_hook my-hook /etc/mkinitcpio.conf
+#=====================================================================
+_has_hook() {
+  local hook_name=$1
+  local config_file=$2
+  grep -qe "^HOOKS=\".*$hook_name" $config_file
+  if (($? == 1)); then
+    return 1
+  fi
+  return 0
+}
+
+#=====================================================================
+# Adds a hook name to a given configuration file.
+# Arguments: hook name, configuration file
+# Example: _add_hook my-hook /etc/mkinitcpio.conf
+#=====================================================================
+_add_hook() {
+  local hook_name=$1
+  local config_file=$2
+  sed -i "s|^\(HOOKS=\".*\)\"|\1 $hook_name\"|g" $config_file
+}
+
+#=====================================================================
+# Removes a hook name from a given configuration file.
+# Arguments: hook name, configuration file
+# Example: _remove_hook my-hook /etc/mkinitcpio.conf
+#=====================================================================
+_remove_hook() {
+  local hook_name=$1
+  local config_file=$2
+  sed -i "s|^\(HOOKS=\".*\)\( $hook_name\)\"|\1\"|g" $config_file
+}
+
+#=====================================================================
+# Checks for a configuration option in a given configuration file.
+# Arguments: configuration option, configuration file
+# Example: _has_cfg my-cfg=value /boot/config.txt
+#=====================================================================
+_has_cfg() {
+  local cfg="$1"
+  local config_file=$2
+  grep -qe ".*$cfg" $config_file
+  if (($? == 1)); then
+    return 1
+  fi
+  return 0
+}
+
+#=====================================================================
+# Appends the ip kernel argument to a given command line file.
+# Arguments: ip kernel argument, configuration file
+# Example: _add_ip ip=dhcp /boot/cmdline.txt
+#=====================================================================
+_add_ip() {
+  local ip_cfg=$1
+  local config_file=$2
+  sed -i "s|$| $ip_cfg|" $config_file
+}
+
+#=====================================================================
+# Removes the ip kernel argument from a given command line file.
+# Arguments: ip kernel argument, configuration file
+# Example: _remove_ip ip=dhcp /boot/cmdline.txt
+#=====================================================================
+_remove_ip() {
+  local ip_cfg=$1
+  local config_file=$2
+  sed -i "s| $ip_cfg||" $config_file
+}
+
+#=====================================================================
+# Adds the initramfs config to a given config line file.
+# Arguments: initramfs config, configuration file
+# Example: _add_initramfs 'initramfs initramfs.img' config.txt
+#=====================================================================
+_add_initramfs() {
+  local initramfs_cfg="$1"
+  local config_file=$2
+  echo "$initramfs_cfg" >> $config_file
+}
+
+#=====================================================================
+# Removes the initramfs config from a given config line file.
+# Arguments: initramfs config, configuration file
+# Example: _remove_initramfs 'initramfs initramfs.img' config.txt
+#=====================================================================
+_remove_initramfs() {
+  local initramfs_cfg="$1"
+  local config_file=$2
+  sed -i "/^$initramfs_cfg/d" $config_file
+}
+
+#=====================================================================
+# Install scripts.
+#=====================================================================
+
+post_install() {
+  post_upgrade "${@}";
+}
+
+post_upgrade() {
+
+  # Check mkinitcpio hooks.
+  for hook in net multiflash; do
+    if ! _has_hook $hook $_MKINITCPIO_CFG; then
+      _add_hook $hook $_MKINITCPIO_CFG
+      cat <<MSG
+>>> Adding hook to $_MKINITCPIO_CFG:
+    > HOOKS="[...] $hook"
+MSG
+    fi
+  done
+
+  # Check ip kernel command line argument.
+  if ! _has_cfg $_IP_CMD_CFG $_CMDLINE_CFG; then
+    _add_ip $_IP_CMD_CFG $_CMDLINE_CFG
+    cat <<MSG
+>>> Adding ip kernel argument to $_CMDLINE_CFG:
+    > [...] $_IP_CMD_CFG
+MSG
+  fi
+
+  # Check initramfs bootloader configuration.
+  if ! _has_cfg "$_INITRAMFS_CFG" $_CONFIG_CFG; then
+    _add_initramfs "$_INITRAMFS_CFG" $_CONFIG_CFG
+    cat <<MSG
+>>> Adding initramfs config to $_CONFIG_CFG:
+    > $_INITRAMFS_CFG
+MSG
+  fi
+
+  # Generate initramfs image.
+  cat <<MSG
+>>> Generating initramfs at $_INITRAMFS_PATH:
+    > mkinitcpio -k $(uname -r) -g $_INITRAMFS_PATH ...
+MSG
+  mkinitcpio -k $(uname -r) -g $_INITRAMFS_PATH
+
+  # Prompt for additional kernel command line argument.
+  grep -qe ".*$_CMD_CFG" $_CMDLINE_CFG || cat <<MSG
+>>> [INFO] Add kernel argument '$_CMD_CFG' to $_CMDLINE_CFG:
+    > [...] $_CMD_CFG=[...]
+MSG
+}
+
+post_remove() {
+
+  # Prompt to remove kernel command line argument.
+  cat <<MSG
+>>> [INFO] Remove kernel argument '$_CMD_CFG' from $_CMDLINE_CFG:
+    > [...] $_CMD_CFG=[...]
+MSG
+
+  # Try to remove initramfs image.
+  if [ -f $_INITRAMFS_PATH ]; then
+    cat <<MSG
+>>> Removing initramfs $_INITRAMFS_PATH ...
+MSG
+    rm -f $_INITRAMFS_PATH
+  fi
+
+  # Remove initramfs bootloader configuration.
+  if _has_cfg "$_INITRAMFS_CFG" $_CONFIG_CFG; then
+    _remove_initramfs "$_INITRAMFS_CFG" $_CONFIG_CFG
+    cat <<MSG
+>>> Removing initramfs config from $_CONFIG_CFG:
+    > $_INITRAMFS_CFG
+MSG
+  fi
+
+  # Remove ip kernel command line argument.
+  if _has_cfg $_IP_CMD_CFG $_CMDLINE_CFG; then
+    _remove_ip $_IP_CMD_CFG $_CMDLINE_CFG
+    cat <<MSG
+>>> Removing ip kernel argument from $_CMDLINE_CFG:
+    > [...] $_IP_CMD_CFG
+MSG
+  fi
+
+  # Remove mkinitcpio hooks.
+  for hook in multiflash net; do
+    if _has_hook $hook $_MKINITCPIO_CFG; then
+      _remove_hook $hook $_MKINITCPIO_CFG
+  cat <<MSG
+>>> Removing hook from $_MKINITCPIO_CFG:
+    > HOOKS="[...] $hook"
+MSG
+    fi
+  done
+}

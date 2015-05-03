@@ -1,0 +1,14 @@
+#!/bin/bash
+
+build() {
+  add_binary 'whereisip'
+  add_binary 'rsync'
+  add_binary 'sync'
+  add_runscript
+}
+
+help() {
+  cat << HELPEOF
+This is a custom hook.
+HELPEOF
+}

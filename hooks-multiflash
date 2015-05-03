@@ -1,0 +1,110 @@
+#!/usr/bin/ash
+
+#=====================================================================
+# MULTIFLASH TOOLS
+#=====================================================================
+
+#=====================================================================
+# Parses a comma seperated list of options.
+# Arguments: variable name
+# Example: _get_options $my_var
+#          where my_var contains: /srv/archlinux/armv6,1030,20,rpi-
+#=====================================================================
+_get_options() {
+  local options=$1
+  if [ ! -z $options ]; then
+    local IFS=,
+    set $options
+    if [ ! -z $1 ] && [ ! -z $2 ] && [ ! -z $3 ] && [ ! -z $4 ]; then
+      _NFS_PATH=$1
+      _SRV_PORT=$2
+      _SRV_PKTO=$3
+      _HNM_PREF=$4
+      return 0
+    fi
+  fi
+  return 1
+}
+
+#=====================================================================
+# Sets the hostname with a given prefix and appends the CPU serial
+# number to it.
+# Arguments: root directory, hostname prefix
+# Example: _set_hostname /new_root my-prefix-
+#=====================================================================
+_set_hostname() {
+  local root_dir=$1
+  local hostname_prefix=$2
+  local serial_number=`cat /proc/cpuinfo | awk '/Serial/ { print $3 }' | sed 's/^0*//'`
+  local new_hostname="$hostname_prefix$serial_number"
+  msg ">>> Configuring new hostname '$new_hostname':"
+  msg "> echo $new_hostname > $root_dir/etc/hostname"
+  echo $new_hostname > $root_dir/etc/hostname
+}
+
+#=====================================================================
+# Updates the SD card with boot and root partition from a given
+# server IP and NFS share path.
+# Arguments: server IP, NFS path
+# Example: _update_sdcard 192.168.178.252 /srv/archlinux/armv6
+#=====================================================================
+_update_sdcard() {
+  local server_ip=$1
+  local nfs_path=$2
+  local wdir='/tmp'
+  local nfs_mount="$wdir/nfs"
+  local boot_mount="$wdir/boot"
+  local root_mount="$wdir/root"
+
+  # Mount partitions.
+  mkdir $nfs_mount $boot_mount $root_mount
+  msg ">>> Mounting NFS share on $nfs_mount:"
+  msg "> nfsmount $server_ip:$nfs_path $nfs_mount"
+  nfsmount $server_ip:$nfs_path $nfs_mount
+  msg ">>> Mounting boot partition on $boot_mount:"
+  msg "> mount /dev/mmcblk0p1 $boot_mount"
+  mount /dev/mmcblk0p1 $boot_mount
+  msg ">>> Mounting root partition on $root_mount:"
+  msg "> mount /dev/mmcblk0p2 $root_mount"
+  mount /dev/mmcblk0p2 $root_mount
+
+  # Update SD card.
+  msg ">>> Syncing root partition from $nfs_mount:"
+  msg "> rsync -a $nfs_mount $root_mount"
+  rsync -a $nfs_mount $root_mount
+  sync
+  msg ">>> Updating boot partition from $root_mount/boot:"
+  msg "> cp -r $root_mount/boot/* $boot_mount/ && rm -rf $root_mount/boot/*"
+  cp -r $root_mount/boot/* $boot_mount/ && rm -rf $root_mount/boot/*
+
+  # Unmount partitions.
+  msg ">>> Unmounting partitions on $wdir:"
+  msg "> umount $nfs_mount $boot_mount $root_mount"
+  umount $nfs_mount $boot_mount $root_mount
+  rmdir $nfs_mount $boot_mount $root_mount
+}
+
+#=====================================================================
+# MULTIFLASH HOOKS
+#=====================================================================
+
+run_hook() {
+  if ! _get_options $multiflash; then
+    # Fail silently.
+    return 0
+  fi
+  local server_ip=$(whereisip $_NFS_PATH $_SRV_PORT $_SRV_PKTO)
+  if [ $? -ne 0 ]; then
+    # Fail silently.
+    return 0
+  fi
+  _update_sdcard $server_ip $_NFS_PATH
+}
+
+run_latehook() {
+  if ! _get_options $multiflash; then
+    # Fail silently.
+    return 0
+  fi
+  _set_hostname /new_root $_HNM_PREF
+}
