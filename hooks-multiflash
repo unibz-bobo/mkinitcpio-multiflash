@@ -71,7 +71,7 @@ _update_sdcard() {
   # Update SD card.
   msg ">>> Syncing root partition from $nfs_mount:"
   msg "> rsync -a $nfs_mount $root_mount"
-  rsync -a $nfs_mount $root_mount
+  rsync -a $nfs_mount/ $root_mount
   sync
   msg ">>> Updating boot partition from $root_mount/boot:"
   msg "> cp -r $root_mount/boot/* $boot_mount/ && rm -rf $root_mount/boot/*"
