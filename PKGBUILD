@@ -1,7 +1,7 @@
 # Maintainer: Julian Sanin <sanin89julian@gmail.com>
 # Contributor: Daniele Gadler <daniele.gadler@yahoo.it>
 pkgname=mkinitcpio-multiflash
-pkgver=0.3
+pkgver=0.4
 pkgrel=1
 arch=('armv6h' 'armv7h')
 license=('MIT')

@@ -89,22 +89,12 @@ _update_sdcard() {
 #=====================================================================
 
 run_hook() {
-  if ! _get_options $multiflash; then
-    # Fail silently.
-    return 0
-  fi
-  local server_ip=$(whereisip $_NFS_PATH $_SRV_PORT $_SRV_PKTO)
-  if [ $? -ne 0 ]; then
-    # Fail silently.
-    return 0
-  fi
+  _get_options $multiflash || return 0
+  local server_ip=$(whereisip $_NFS_PATH $_SRV_PORT $_SRV_PKTO) || return 0
   _update_sdcard $server_ip $_NFS_PATH
 }
 
 run_latehook() {
-  if ! _get_options $multiflash; then
-    # Fail silently.
-    return 0
-  fi
+  _get_options $multiflash || return 0
   _set_hostname /new_root $_HNM_PREF
 }
