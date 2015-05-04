@@ -15,7 +15,7 @@ Run `updpkgsums` to generate the checksum followed by `makepkg` to build the pac
 
 Installing
 ----------
-Install the package via `sudo pacman -U multiflash*.pkg.tar.xz`
+Install the package via `sudo pacman -U mkinitcpio-multiflash*.pkg.tar.xz`
 
 Usage
 -----
