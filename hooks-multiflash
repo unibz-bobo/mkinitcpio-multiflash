@@ -70,7 +70,7 @@ _update_sdcard() {
 
   # Update SD card.
   msg ">>> Syncing root partition from $nfs_mount:"
-  msg "> rsync -a $nfs_mount $root_mount"
+  msg "> rsync -a $nfs_mount/ $root_mount"
   rsync -a $nfs_mount/ $root_mount
   sync
   msg ">>> Updating boot partition from $root_mount/boot:"
@@ -89,12 +89,12 @@ _update_sdcard() {
 #=====================================================================
 
 run_hook() {
-  _get_options $multiflash || return 0
-  local server_ip=$(whereisip $_NFS_PATH $_SRV_PORT $_SRV_PKTO) || return 0
-  _update_sdcard $server_ip $_NFS_PATH
+  _get_options $multiflash || return
+  _SRV_IP=`whereisip $_NFS_PATH $_SRV_PORT $_SRV_PKTO` || return
+  _update_sdcard $_SRV_IP $_NFS_PATH
 }
 
 run_latehook() {
-  _get_options $multiflash || return 0
+  _get_options $multiflash || return
   _set_hostname /new_root $_HNM_PREF
 }
