@@ -1,14 +1,14 @@
 #!/bin/bash
 
 build() {
-  add_binary 'whereisip'
-  add_binary 'rsync'
-  add_binary 'sync'
+  for binary in whereisip rsync sync; do
+    add_binary "$binary"
+  done
   add_runscript
 }
 
 help() {
   cat << HELPEOF
-This is a custom hook.
+This hook enables flashing of the root filesystem from a remote server.
 HELPEOF
 }

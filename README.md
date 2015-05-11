@@ -11,7 +11,7 @@ Required Packages for Building
 
 Building
 --------
-Run `updpkgsums` to generate the checksum followed by `makepkg` to build the package.
+Run `updpkgsums` to generate the checksum followed by `makepkg -s` to build the package.
 
 Installing
 ----------

@@ -146,27 +146,21 @@ MSG
 MSG
   fi
 
-  # Generate initramfs image.
-  cat <<MSG
->>> Generating initramfs at $_INITRAMFS_PATH:
-    > mkinitcpio -k $(uname -r) -g $_INITRAMFS_PATH ...
-MSG
-  mkinitcpio -k $(uname -r) -g $_INITRAMFS_PATH
-
   # Prompt for additional kernel command line argument.
   grep -qe ".*$_CMD_CFG" $_CMDLINE_CFG || cat <<MSG
 >>> [INFO] Add kernel argument '$_CMD_CFG' to $_CMDLINE_CFG:
     > [...] $_CMD_CFG=[...]
 MSG
+
+  # Try to generate initramfs image.
+  cat <<MSG
+>>> Generating initramfs at $_INITRAMFS_PATH:
+    > mkinitcpio -k $(uname -r) -g $_INITRAMFS_PATH ...
+MSG
+  mkinitcpio -k $(uname -r) -g $_INITRAMFS_PATH
 }
 
 post_remove() {
-
-  # Prompt to remove kernel command line argument.
-  cat <<MSG
->>> [INFO] Remove kernel argument '$_CMD_CFG' from $_CMDLINE_CFG:
-    > [...] $_CMD_CFG=[...]
-MSG
 
   # Try to remove initramfs image.
   if [ -f $_INITRAMFS_PATH ]; then
@@ -175,6 +169,12 @@ MSG
 MSG
     rm -f $_INITRAMFS_PATH
   fi
+
+  # Prompt to remove kernel command line argument.
+  cat <<MSG
+>>> [INFO] Remove kernel argument '$_CMD_CFG' from $_CMDLINE_CFG:
+    > [...] $_CMD_CFG=[...]
+MSG
 
   # Remove initramfs bootloader configuration.
   if _has_cfg "$_INITRAMFS_CFG" $_CONFIG_CFG; then
