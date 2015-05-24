@@ -8,7 +8,7 @@
 # Parses a comma seperated list of options.
 # Arguments: variable name
 # Example: _get_options $my_var
-#          where my_var contains: /srv/archlinux/armv6,1030,20,rpi-
+#          where my_var is: /srv/arch/armv6/img.tar.gz,1030,20,rpi-
 #=====================================================================
 _get_options() {
   local options=$1
@@ -44,13 +44,14 @@ _set_hostname() {
 
 #=====================================================================
 # Updates the SD card with boot and root partition from a given
-# server IP and NFS share path.
-# Arguments: server IP, NFS path
-# Example: _update_sdcard 192.168.178.252 /srv/archlinux/armv6
+# server IP and NFS share file path.
+# Arguments: server IP, NFS file path
+# Example: _update_sdcard 192.168.178.252 /srv/arch/armv6/img.tar.gz
 #=====================================================================
 _update_sdcard() {
   local server_ip=$1
-  local nfs_path=$2
+  local nfs_path=$(dirname "$2")
+  local nfs_img=$(basename "$2")
   local wdir='/tmp'
   local nfs_mount="$wdir/nfs"
   local boot_mount="$wdir/boot"
@@ -69,9 +70,9 @@ _update_sdcard() {
   mount /dev/mmcblk0p2 $root_mount
 
   # Update SD card.
-  msg ">>> Syncing root partition from $nfs_mount:"
-  msg "> rsync -a $nfs_mount/ $root_mount"
-  rsync -a $nfs_mount/ $root_mount
+  msg ">>> Writing root partition from $nfs_mount:"
+  msg "> bsdtar -xpf $nfs_mount/$nfs_img -C $root_mount"
+  bsdtar -xpf $nfs_mount/$nfs_img -C $root_mount
   sync
   msg ">>> Updating boot partition from $root_mount/boot:"
   msg "> cp -r $root_mount/boot/* $boot_mount/ && rm -rf $root_mount/boot/*"
