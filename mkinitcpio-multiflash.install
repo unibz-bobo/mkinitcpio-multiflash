@@ -155,9 +155,9 @@ MSG
   # Try to generate initramfs image.
   cat <<MSG
 >>> Generating initramfs at $_INITRAMFS_PATH:
-    > mkinitcpio -k $(uname -r) -g $_INITRAMFS_PATH ...
+    > mkinitcpio -k $(ls /lib/modules | grep ARCH) -g $_INITRAMFS_PATH ...
 MSG
-  mkinitcpio -k $(uname -r) -g $_INITRAMFS_PATH
+  mkinitcpio -k $(ls /lib/modules | grep ARCH) -g $_INITRAMFS_PATH
 }
 
 post_remove() {
