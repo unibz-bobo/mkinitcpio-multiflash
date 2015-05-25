@@ -3,7 +3,7 @@
 
 pkgname=mkinitcpio-multiflash
 pkgver=1.0.0
-pkgrel=1
+pkgrel=2
 arch=('armv6h' 'armv7h')
 license=('MIT')
 depends=('mkinitcpio'

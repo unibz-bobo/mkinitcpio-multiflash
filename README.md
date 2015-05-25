@@ -18,7 +18,7 @@ Install the package via `sudo pacman -U mkinitcpio-multiflash*.pkg.tar.xz`
 
 Usage
 -----
-Run `mkinitcpio -k $(uname -r) -g /boot/initramfs.img` to generate a new initramfs for example after a Linux kernel update.
+Run `mkinitcpio -k $(ls /lib/modules | grep ARCH) -g /boot/initramfs.img` to generate a new initramfs for example after a Linux kernel update.
 
 Append `multilash=<nfs_file_path>,<server_port>,<timeout_in_seconds>,<hostname_prefix>` to the Linux kernel command line to enable the multiflash script.
 It is expected that on the NFS server runs the package [broadcastipd](https://github.com/j54n1n/alarm-broadcastipd) with given `<nfs_file_path>` and `<server_port>`. See also `whereisip`.
