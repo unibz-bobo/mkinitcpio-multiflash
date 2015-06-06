@@ -60,8 +60,8 @@ _update_sdcard() {
   # Mount partitions.
   mkdir $nfs_mount $boot_mount $root_mount
   msg ">>> Mounting NFS share on $nfs_mount:"
-  msg "> nfsmount $server_ip:$nfs_path $nfs_mount"
-  nfsmount $server_ip:$nfs_path $nfs_mount
+  msg "> nfsmount -o udp $server_ip:$nfs_path $nfs_mount"
+  nfsmount -o udp $server_ip:$nfs_path $nfs_mount
   msg ">>> Mounting boot partition on $boot_mount:"
   msg "> mount /dev/mmcblk0p1 $boot_mount"
   mount /dev/mmcblk0p1 $boot_mount
