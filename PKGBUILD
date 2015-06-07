@@ -2,7 +2,7 @@
 # Contributor: Daniele Gadler <daniele.gadler@yahoo.it>
 
 pkgname=mkinitcpio-multiflash
-pkgver=1.0.1
+pkgver=1.0.2
 pkgrel=1
 arch=('armv6h' 'armv7h')
 license=('MIT')
@@ -15,7 +15,7 @@ source=('LICENSE'
         'install-multiflash')
 md5sums=('cefb772e5780b0fa3b7bbc09097e0ede'
          'b9afc4d03376a9184a09ee3b169aaff3'
-         'aed06f8215093fd9daf38e56b5ab528c'
+         '1851940c4aa58fc69d3c1256aec97d8a'
          'f58e2bae47d8f8016b434cbf5c682c95')
 
 build() {

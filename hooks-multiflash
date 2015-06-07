@@ -27,6 +27,25 @@ _get_options() {
 }
 
 #=====================================================================
+# Parses the interface name from the ip kernel command line.
+# Arguments: variable name
+# Example: _get_interface $ip
+#          where ip=:::::eth0:dhcp
+#=====================================================================
+_get_interface() {
+  local options=$1
+  if [ ! -z $options ]; then
+    local IFS=:
+    set $options
+    if [ ! -z $6 ]; then
+      _NET_INTF=$6
+      return 0
+    fi
+  fi
+  return 1
+}
+
+#=====================================================================
 # Sets the hostname with a given prefix and appends the CPU serial
 # number to it.
 # Arguments: root directory, hostname prefix
@@ -96,6 +115,12 @@ run_hook() {
 }
 
 run_latehook() {
+  _get_interface $ip && {
+    msg ">>> Resetting network interface $_NET_INTF"
+    ip addr flush dev $_NET_INTF
+    ip route flush dev $_NET_INTF
+    ip link set dev $_NET_INTF down
+  }
   _get_options $multiflash || return
   _set_hostname /new_root $_HNM_PREF
 }
