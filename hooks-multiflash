@@ -46,6 +46,60 @@ _get_interface() {
 }
 
 #=====================================================================
+# Parses a hexadecimal number and converts it to a Base36 number.
+# Arguments: hexadecimal number
+# Example: _base16_to_base36 fa5401bc
+#=====================================================================
+_base16_to_base36() {
+  local base16=`echo $1 | tr '[:lower:]' '[:upper:]'`
+  local base36=`echo "obase=36;ibase=16;$base16" | BC_LINE_LENGTH=0 bc`
+  for digit in $base36; do
+    # HACK:
+    # Don't call me stupid here but the built-in busybox shell has
+    # limited support for arrays or else I would have implemented it
+    # in an different way. Cheers Julian.
+    case $digit in
+      00|0) echo -n '0' ;;
+      01|1) echo -n '1' ;;
+      02|2) echo -n '2' ;;
+      03|3) echo -n '3' ;;
+      04|4) echo -n '4' ;;
+      05|5) echo -n '5' ;;
+      06|6) echo -n '6' ;;
+      07|7) echo -n '7' ;;
+      08|8) echo -n '8' ;;
+      09|9) echo -n '9' ;;
+      10) echo -n 'a' ;;
+      11) echo -n 'b' ;;
+      12) echo -n 'c' ;;
+      13) echo -n 'd' ;;
+      14) echo -n 'e' ;;
+      15) echo -n 'f' ;;
+      16) echo -n 'g' ;;
+      17) echo -n 'h' ;;
+      18) echo -n 'i' ;;
+      19) echo -n 'j' ;;
+      20) echo -n 'k' ;;
+      21) echo -n 'l' ;;
+      22) echo -n 'm' ;;
+      23) echo -n 'n' ;;
+      24) echo -n 'o' ;;
+      25) echo -n 'p' ;;
+      26) echo -n 'q' ;;
+      27) echo -n 'r' ;;
+      28) echo -n 's' ;;
+      29) echo -n 't' ;;
+      30) echo -n 'u' ;;
+      31) echo -n 'v' ;;
+      32) echo -n 'w' ;;
+      33) echo -n 'x' ;;
+      34) echo -n 'y' ;;
+      35) echo -n 'z' ;;
+    esac
+  done && echo
+}
+
+#=====================================================================
 # Sets the hostname with a given prefix and appends the CPU serial
 # number to it.
 # Arguments: root directory, hostname prefix
@@ -54,7 +108,8 @@ _get_interface() {
 _set_hostname() {
   local root_dir=$1
   local hostname_prefix=$2
-  local serial_number=`cat /proc/cpuinfo | awk '/Serial/ { print $3 }' | sed 's/^0*//'`
+  local card_id=`cat /sys/block/mmcblk0/device/cid`
+  local serial_number=`_base16_to_base36 $card_id`
   local new_hostname="$hostname_prefix$serial_number"
   msg ">>> Configuring new hostname '$new_hostname':"
   msg "> echo $new_hostname > $root_dir/etc/hostname"

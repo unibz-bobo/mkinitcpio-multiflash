@@ -2,12 +2,13 @@
 # Contributor: Daniele Gadler <daniele.gadler@yahoo.it>
 
 pkgname=mkinitcpio-multiflash
-pkgver=1.0.2
+pkgver=1.0.3
 pkgrel=1
 arch=('armv6h' 'armv7h')
 license=('MIT')
 depends=('mkinitcpio'
-         'mkinitcpio-nfs-utils')
+         'mkinitcpio-nfs-utils'
+         'bc')
 install="${pkgname}.install"
 source=('LICENSE'
         'whereisip.c'
@@ -15,8 +16,8 @@ source=('LICENSE'
         'install-multiflash')
 md5sums=('cefb772e5780b0fa3b7bbc09097e0ede'
          'b9afc4d03376a9184a09ee3b169aaff3'
-         '1851940c4aa58fc69d3c1256aec97d8a'
-         'f58e2bae47d8f8016b434cbf5c682c95')
+         'b8dce55ae36ec4c3a512bbef17c785d0'
+         'c2b88ab56fc7914a092f3709c164f212')
 
 build() {
   gcc -o whereisip -Os whereisip.c

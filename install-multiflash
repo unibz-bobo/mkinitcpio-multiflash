@@ -1,7 +1,7 @@
 #!/bin/bash
 
 build() {
-  for binary in whereisip bsdtar sync; do
+  for binary in whereisip bsdtar sync tr bc; do
     add_binary "$binary"
   done
   add_runscript
