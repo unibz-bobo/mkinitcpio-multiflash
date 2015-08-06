@@ -20,9 +20,15 @@ _get_options() {
       _SRV_PORT=$2
       _SRV_PKTO=$3
       _HNM_PREF=$4
+      # Check for optional parameters.
+      if [ ! -z $5 ] && [ 'off' = $5 ]; then
+        # Multiflash is disabled to allow reboot without flashing.
+        return 1
+      fi
       return 0
     fi
   fi
+  # Invalid multiflash commandline parameter.
   return 1
 }
 
@@ -151,6 +157,9 @@ _update_sdcard() {
   msg ">>> Updating boot partition from $root_mount/boot:"
   msg "> cp -r $root_mount/boot/* $boot_mount/ && rm -rf $root_mount/boot/*"
   cp -r $root_mount/boot/* $boot_mount/ && rm -rf $root_mount/boot/*
+
+  # Disable multiflash for next boot.
+  sed -i 's/multiflash=\([[:alnum:]]\|[[:punct:]]\)*/&,off/' $boot_mount/cmdline.txt
 
   # Unmount partitions.
   msg ">>> Unmounting partitions on $wdir:"

@@ -158,6 +158,10 @@ MSG
     > mkinitcpio -k $(ls /lib/modules | grep ARCH) -g $_INITRAMFS_PATH ...
 MSG
   mkinitcpio -k $(ls /lib/modules | grep ARCH) -g $_INITRAMFS_PATH
+
+  # Enable service.
+  systemctl enable mkinitcpio-multiflash
+  systemctl start mkinitcpio-multiflash
 }
 
 post_remove() {
@@ -204,4 +208,8 @@ MSG
 MSG
     fi
   done
+
+  # Disable service.
+  systemctl stop mkinitcpio-multiflash
+  systemctl disable mkinitcpio-multiflash
 }

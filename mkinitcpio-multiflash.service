@@ -1,0 +1,11 @@
+[Unit]
+Description=Daemon to refresh initramfs before shutdown or reboot
+Before=shutdown.target
+
+[Service]
+ExecStart=/bin/true
+ExecStop=/etc/rc.local.mkinitcpio-multiflash
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

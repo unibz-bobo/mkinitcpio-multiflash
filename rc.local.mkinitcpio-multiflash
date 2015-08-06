@@ -1,0 +1,3 @@
+#!/bin/bash
+mkinitcpio -k $(ls /lib/modules | grep ARCH) -g /boot/initramfs.img 2>&1 | logger
+exit 0
